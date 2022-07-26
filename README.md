@@ -20,9 +20,9 @@ Currently, there are implementations for reading the density matrix from VASP
 and abinit. However, every local density matrix can be used by reading it in as a numpy array.
 From these matrices, the multipoles can be straightforwardly calculated.
 
-Alternatively, the multipoles computed by Elk and VASP can directly be read.
-This allows for direct comparison between this implementation and the respective DFT
-implementation.
+Alternatively, the multipoles computed by Elk and VASP (unpublished VASP modification
+by our group) can directly be read. This allows for direct comparison between
+this implementation and the respective DFT implementation.
 
 For the computed/read multipoles, the code can then calculate exchange and Hartree
 energies.
