@@ -10,7 +10,7 @@ for Ba2MgReO6 (see folder `BMRO_benchmark/`)
 the program and calculated multipoles from different DFT codes for comparison
 * `helper.py`: helper functions needed in `multipoles.py`
 
-It currently works for all density matrices with the same orbital moment $`l = l'`$.
+It currently works for all density matrices with the same orbital moment $l = l'$.
 
 This code is based on [Bultmark et al. (2009)](https://doi.org/10.1103/PhysRevB.80.035121).
 
@@ -40,8 +40,8 @@ Brief summary of the important steps for this code with explicit summations:
 ```math
 \rho_{i,m,m',p} = \left.\left(\sum_{s,s'} \rho_{i,m,m',s,s'} \sigma^{(p)}_{s',s} \right)\right/2,
 ```
-where $`\rho_{i,m,m',s,s'}`$ is the density matrix per site $`i`$ in spherical harmonics
-and $`p = x, y, z, 0`$ is the index to the Pauli matrices $`\sigma^{(p)}`$.
+where $\rho_{i,m,m',s,s'}$ is the density matrix per site $i$ in spherical harmonics
+and $p = x, y, z, 0$ is the index to the Pauli matrices $\sigma^{(p)}$.
 
 ### Computation of time-reversal (tr) even and odd density matrix
 
@@ -51,7 +51,7 @@ Time-reversal symmetrization based on Pauli matrices:
 \rho^{(\nu)}_{i,m,m',p} = \left.\left(\rho_{i,m,m',p} +
 (-1)^\nu (-1)^{m+m'} (-1)^{p \neq 0} \rho_{i,-m',-m,p}\right)\right/2,
 ```
-where $`\nu = 0 (1)`$ means time-reversal even (odd).
+where $\nu = 0 (1)$ means time-reversal even (odd).
 
 Then rewrite matrix in spin components:
 
@@ -61,11 +61,11 @@ Then rewrite matrix in spin components:
 
 ### Calculation of multipole moments
 
-Formulas for multipoles ($`\sigma = 1/2`$):
+Formulas for multipoles ($\sigma = 1/2$):
 
 ```math
-\omega_{k,x,m_a,m_b} = \bar\omega_k \cdot (-1)^{l-m_b}
-\begin{pmatrix} l & k & l \\ -m_b & x & m_a \end{pmatrix}\\
+\displaylines{\omega_{k,x,m_a,m_b} = \bar\omega_k \cdot (-1)^{l-m_b}
+\begin{pmatrix} l & k & l \\ -m_b & x & m_a \end{pmatrix} \\
 
 \bar\omega_k = \left.\sqrt{(2l-k)! (2l+k+1)!} \right/ (2l)!\\
 
@@ -82,7 +82,7 @@ Formulas for multipoles ($`\sigma = 1/2`$):
 
 w^{(\nu)}_{i,t,k,p,r} = \sum_{x=-k\ldots k, \\ y=-p\ldots p} \xi_{k,p,r,x,y,t}
 \sum_{s=-\sigma\ldots\sigma, \\ s'=-\sigma\ldots\sigma} \chi_{p,y,s,s'}
-\sum_{m=-l\ldots l, \\ m'=-l\ldots l} \omega_{k,x,m,m'} \rho^{(\nu)}_{i,m',m,s',s}
+\sum_{m=-l\ldots l, \\ m'=-l\ldots l} \omega_{k,x,m,m'} \rho^{(\nu)}_{i,m',m,s',s}}
 ```
 
 # Copyright and license
