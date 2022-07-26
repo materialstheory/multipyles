@@ -29,6 +29,8 @@ energies.
 
 ## How to cite
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6907024.svg)](https://doi.org/10.5281/zenodo.6907024)
+
 Please use the doi linked in the README.md of the newest stable release.
 
 ## Equations
