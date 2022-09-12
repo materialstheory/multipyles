@@ -105,27 +105,44 @@ def read_densmat_from_vasp(source):
         if 'atom = ' in line:
             atom = int(line.split()[2])
             data[atom] = ''
+            nspins = 0
             reading = True
             continue
 
         if not reading:
             continue
 
-        if 'spin  ' in line:
+        if 'spin  ' in line or 'occupancies' in line:
             reading = False
+            continue
+
+        if 'spin component' in line:
+            nspins += 1
+            assert int(line.split()[-1]) == nspins
             continue
 
         if '.' in line:
             data[atom] += line
+
+    if nspins not in (2, 4):
+        raise NotImplementedError('Number of spin channels not supported')
 
     # Casts data in useful format
     data = np.array([np.loadtxt(s for s in string.splitlines())
                      for _, string in sorted(data.items())])
 
     dim = data.shape[2]
-    assert dim % 2 == 0, 'Line should contain real and complex part'
-    dim //= 2
-    data = data[:, :, :dim] + 1j * data[:, :, dim:]
+    # Non-collinear calculations have complex density matrix
+    if nspins == 4:
+        assert dim % 2 == 0, 'Line should contain real and complex part'
+        dim //= 2
+        data = data[:, :, :dim] + 1j * data[:, :, dim:]
+        data = data.reshape(data.shape[0], 2, 2, dim, dim)
+    # Collinear calculations are zero in spin-off-diagonal entries
+    elif nspins == 2:
+        reshaped_data = np.zeros((data.shape[0], 2, 2, dim, dim), dtype=float)
+        reshaped_data[:, [0, 1], [0, 1]] = data.reshape(data.shape[0], nspins, dim, dim)
+        data = reshaped_data
 
     warnings.warn('The multipoles here are consistent with the 2021 VASP implementation.'
                   + 'There has been a bug fix which might change the signs of some magnetic multipoles.')
@@ -133,7 +150,7 @@ def read_densmat_from_vasp(source):
     # Transposes data
     # FIXME: This produces the same multipoles as the VASP implementation of the multipoles
     #        Not sure if orbitals need to be transposed because VASP stores them differently
-    return data.reshape(data.shape[0], 2, 2, dim, dim).transpose((0, 4, 3, 2, 1))
+    return data.transpose((0, 4, 3, 2, 1))
 
 
 def read_densmat_from_abinit(source, use_entries):
