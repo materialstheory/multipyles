@@ -4,7 +4,7 @@ This repository contains python scripts to compute the multipole moments
 from a local density matrix (e.g., from density-functional theory or dynamical
 mean-field theory):
 * `example.ipynb`: examples on how to use the code and benchmark against VASP
-for Ba2MgReO6 (see folder `BMRO_benchmark/`)
+for Cr2O3 (see folder `Cr2O3_benchmark/`)
 * `multipoles.py`: all the functions for calculating multipoles
 * `read_from_dft.py`: functions to read density matrices to feed into
 the program and calculated multipoles from different DFT codes for comparison

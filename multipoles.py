@@ -10,7 +10,7 @@ Vasp and Elk reading functions written by Florian Thöle, Materials Theory, ETH 
 Multipole computation re-derived with the help of Alberto Carta and debugged
 with the help of Andrea Urru, both Materials Theory, ETH Zürich.
 
-Please cite as: ...
+Please cite with the DOI from the github project.
 """
 
 # TODO: add helper functions to read in SOC matrices, collinear matrices, t2g matrices, ...
@@ -128,8 +128,8 @@ def calculate(density_matrix, cubic=True, verbose=False):
     if cubic:
         print('Transforming from cubic to spherical harmonics')
         trafo_matrix = helper.spherical_to_cubic(l)
-        density_matrix = np.einsum('al,iabrs,bk->ilkrs', trafo_matrix, density_matrix,
-                                   trafo_matrix.conj())
+        density_matrix = np.einsum('al,iabrs,bk->ilkrs', trafo_matrix.conj(), density_matrix,
+                                   trafo_matrix)
 
         if verbose:
             print('-'*40)
