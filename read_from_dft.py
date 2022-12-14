@@ -128,6 +128,8 @@ def read_densmat_from_vasp(source, select_atoms=None):
         if '.' in line:
             data[atom] += line
 
+    if data == {}:
+        raise ValueError('No data found for input parameters')
     if nspins not in (2, 4):
         raise NotImplementedError('Number of spin channels not supported')
 
