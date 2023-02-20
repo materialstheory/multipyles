@@ -228,7 +228,7 @@ def calculate(density_matrix, cubic=True, verbose=False):
 
 def filter_results(df, cond):
     """ Filters dataframe df with condition from dictionary cond. """
-    cond_fulfilled = (df[cond.keys()] == cond.values()).all(axis=1)
+    cond_fulfilled = (df[cond.keys()] == list(cond.values())).all(axis=1)
     return df[cond_fulfilled]
 
 def transform_results_to_real(results):
