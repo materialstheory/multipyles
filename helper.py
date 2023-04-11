@@ -58,7 +58,7 @@ def spherical_to_cubic(l):
 
 def minus_one_to_the(x):
     """ Calculates (-1)^x for integer x. """
-    assert np.isclose(x, int(x))
+    assert isinstance(x, int)
     return 1-2*(x%2)
 
 def uj_to_slater_integrals(l, u, j):

@@ -43,13 +43,13 @@ def _chi(p, y, s_a, s_b):
     return complex(((-1)**(_SIGMA-s_b) * _chi_norm(p)
                     * cg.Wigner3j(_SIGMA, -s_b, p, y, _SIGMA, s_a).doit()).evalf())
 
-def _xi_norm(a, b, c):
+def _xi_norm(k, p, r):
     factorial = np.math.factorial
-    double_factorial = [np.prod(np.arange(n, 0, -2)) for n in range(30)]
-    g = a+b+c
-    return (1j**-g * np.sqrt(factorial(g+1) / factorial(g-2*a) / factorial(g-2*b) / factorial(g-2*c))
-            * double_factorial[g-2*a] * double_factorial[g-2*b]
-            * double_factorial[g-2*c] / double_factorial[g])
+    g = k+p+r
+    double_factorial = [np.prod(np.arange(n, 0, -2)) for n in range(g+1)]
+    return (1j**-g * np.sqrt(factorial(g+1) / factorial(g-2*k) / factorial(g-2*p) / factorial(g-2*r))
+            * double_factorial[g-2*k] * double_factorial[g-2*p]
+            * double_factorial[g-2*r] / double_factorial[g])
 
 def _xi(k, p, r, x, y, t):
     return complex(_xi_norm(k, p, r) * helper.minus_one_to_the(k-x+p-y)
@@ -188,21 +188,23 @@ def calculate(density_matrix, cubic=True, verbose=False):
 
     # Calculates multipole moments
     results = []
-    for k in range(2*l+1): # orbital dof
-        for p in (0, 1): # spin dof
-            for r in range(abs(k-p), k+p+1): # tensor rank
-                x_range = range(-k, k+1)
-                y_range = range(-p, p+1)
-                s_range = (+_SIGMA, -_SIGMA)
-                m_range = range(-l, l+1)
-                t_range = range(-r, r+1)
 
+    s_range = (+_SIGMA, -_SIGMA)
+    m_range = range(-l, l+1)
+    for k in range(2*l+1): # orbital dof
+        x_range = range(-k, k+1)
+        omega_matrix = np.array([[[_omega(l, k, x, m_a, m_b) for m_b in m_range]
+                                  for m_a in m_range] for x in x_range])
+
+        for p in (0, 1): # spin dof
+            y_range = range(-p, p+1)
+            chi_matrix = np.array([[[_chi(p, y, s_a, s_b) for s_b in s_range]
+                                    for s_a in s_range] for y in y_range])
+
+            for r in range(abs(k-p), k+p+1): # tensor rank
+                t_range = range(-r, r+1)
                 xi_matrix = np.array([[[_xi(k, p, r, x, y, t) for t in t_range]
                                        for y in y_range] for x in x_range])
-                omega_matrix = np.array([[[_omega(l, k, x, m_a, m_b) for m_b in m_range]
-                                          for m_a in m_range] for x in x_range])
-                chi_matrix = np.array([[[_chi(p, y, s_a, s_b) for s_b in s_range] for s_a in s_range]
-                                       for y in y_range])
 
                 if verbose:
                     print('-'*40)
