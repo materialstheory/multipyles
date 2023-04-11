@@ -1,0 +1,4 @@
+# pip requirements for automated testing
+pandas < 2.0.0
+sympy
+

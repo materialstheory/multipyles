@@ -3,8 +3,6 @@
 import numpy as np
 import pandas as pd
 
-import warnings
-
 _IO_ENTRIES = ['species', 'atom', 'nu', 'l1', 'l2', 'k', 'p', 'r', 't', 'value']
 
 def read_multipoles_from_elk(source):
