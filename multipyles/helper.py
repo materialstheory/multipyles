@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-
-
+import numbers
 import numpy as np
 
 def check_density_matrix_and_get_angular_momentum(density_matrix):
@@ -58,7 +56,7 @@ def spherical_to_cubic(l):
 
 def minus_one_to_the(x):
     """ Calculates (-1)^x for integer x. """
-    assert isinstance(x, int)
+    assert isinstance(x, numbers.Integral)
     return 1-2*(x%2)
 
 def uj_to_slater_integrals(l, u, j):

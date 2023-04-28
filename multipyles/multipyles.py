@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 Code to calculate the multipoles from a density matrix following the formalism from
 F. Bultmark et al., Phys. Rev. B 80, 035121 (2009), doi: 10.1103/PhysRevB.80.035121.
@@ -18,64 +16,11 @@ Please cite with the DOI from the github project.
 import numpy as np
 import pandas as pd
 
-from sympy.physics.quantum import cg
-import sympy
+from . import helper
+from .multipole_eqs import omega, chi, xi, exchange_k, hartree_k, SIGMA, PAULI_MATRICES
 
-import helper
-
-_SIGMA = sympy.S(1)/2
-_PAULI_MATRICES = np.array([[[0, 1], [1, 0]], [[0, -1j], [1j, 0]],
-                            [[1, 0], [0, -1]], [[1, 0], [0, 1]]]) # x, y, z, 0
 _IO_ENTRIES = ['species', 'atom', 'nu', 'l1', 'l2', 'k', 'p', 'r', 't', 'value']
 
-def _omega_norm(l, k):
-    factorial = np.math.factorial
-    return np.sqrt(factorial(2*l-k) * factorial(2*l+k+1)) / factorial(2*l)
-
-def _omega(l, k, x, m_a, m_b):
-    return float(helper.minus_one_to_the(l-m_b) * _omega_norm(l, k)
-                 * cg.Wigner3j(l, -m_b, k, x, l, m_a).doit())
-
-def _chi_norm(p):
-    return np.sqrt(np.math.factorial(p+2))
-
-def _chi(p, y, s_a, s_b):
-    return complex(((-1)**(_SIGMA-s_b) * _chi_norm(p)
-                    * cg.Wigner3j(_SIGMA, -s_b, p, y, _SIGMA, s_a).doit()).evalf())
-
-def _xi_norm(k, p, r):
-    factorial = np.math.factorial
-    g = k+p+r
-    double_factorial = [np.prod(np.arange(n, 0, -2)) for n in range(g+1)]
-    return (1j**-g * np.sqrt(factorial(g+1) / factorial(g-2*k) / factorial(g-2*p) / factorial(g-2*r))
-            * double_factorial[g-2*k] * double_factorial[g-2*p]
-            * double_factorial[g-2*r] / double_factorial[g])
-
-def _xi(k, p, r, x, y, t):
-    return complex(_xi_norm(k, p, r) * helper.minus_one_to_the(k-x+p-y)
-                   * cg.Wigner3j(k, -x, r, t, p, -y).doit())
-
-def _exchange_k(l, k1, p, r):
-    """Array for exchange matrix from eqn. (30) from Bultmark paper for each k. """
-    k_range = np.arange(0, 2*l+1, 2)
-    values = np.zeros_like(k_range, dtype=float)
-    values[:] = -(2*l+1)**2 * (2*k1+1) * (2*r+1) / 4 * helper.minus_one_to_the(k1)
-    values /= abs(_xi_norm(k1, p, r))**2 * _omega_norm(l, k1)**2
-    values *= np.array([cg.Wigner3j(l, 0, k, 0, l, 0).doit()**2 * cg.Wigner6j(l, l, k1, l, l, k).doit()
-                        for k in k_range], dtype=float)
-    return values
-
-def _hartree_k(l, k1, p):
-    """
-    Array for hartree matrix analogous to _exchange_k, derived from eqn. (22)
-    from Bultmark paper, for each k. """
-    k_range = np.arange(0, 2*l+1, 2)
-    values = np.zeros_like(k_range, dtype=float)
-    values[:] = (2*l+1)**2 / 2
-    values /= _omega_norm(l, k1)**2
-    values *= np.array([cg.Wigner3j(l, 0, k, 0, l, 0).doit()**2 * float(k==k1 and p==0)
-                        for k in k_range], dtype=float)
-    return values
 
 def calculate(density_matrix, cubic=True, verbose=False):
     """
@@ -148,7 +93,7 @@ def calculate(density_matrix, cubic=True, verbose=False):
             print(density_matrix[:, :, :, 1, 1])
 
     # Decomposes density matrix into Pauli matrices
-    density_matrix_pauli = np.einsum('imnrs,psr->imnp', density_matrix, _PAULI_MATRICES)/2
+    density_matrix_pauli = np.einsum('imnrs,psr->imnp', density_matrix, PAULI_MATRICES)/2
     if verbose:
         print('-'*40)
         print('Density matrix in Pauli matrices')
@@ -169,7 +114,7 @@ def calculate(density_matrix, cubic=True, verbose=False):
                                                          (-1, -1, -1, 1),
                                                          density_matrix_pauli[:, ::-1, ::-1]) * tr
                                              for tr in (1, -1)])
-    density_matrix_tr = np.einsum('uimnp,prs->uimnrs', density_matrix_pauli_tr, _PAULI_MATRICES)
+    density_matrix_tr = np.einsum('uimnp,prs->uimnrs', density_matrix_pauli_tr, PAULI_MATRICES)
 
     if verbose:
         print('-'*40)
@@ -189,21 +134,21 @@ def calculate(density_matrix, cubic=True, verbose=False):
     # Calculates multipole moments
     results = []
 
-    s_range = (+_SIGMA, -_SIGMA)
+    s_range = (+SIGMA, -SIGMA)
     m_range = range(-l, l+1)
     for k in range(2*l+1): # orbital dof
         x_range = range(-k, k+1)
-        omega_matrix = np.array([[[_omega(l, k, x, m_a, m_b) for m_b in m_range]
+        omega_matrix = np.array([[[omega(l, k, x, m_a, m_b) for m_b in m_range]
                                   for m_a in m_range] for x in x_range])
 
         for p in (0, 1): # spin dof
             y_range = range(-p, p+1)
-            chi_matrix = np.array([[[_chi(p, y, s_a, s_b) for s_b in s_range]
+            chi_matrix = np.array([[[chi(p, y, s_a, s_b) for s_b in s_range]
                                     for s_a in s_range] for y in y_range])
 
             for r in range(abs(k-p), k+p+1): # tensor rank
                 t_range = range(-r, r+1)
-                xi_matrix = np.array([[[_xi(k, p, r, x, y, t) for t in t_range]
+                xi_matrix = np.array([[[xi(k, p, r, x, y, t) for t in t_range]
                                        for y in y_range] for x in x_range])
 
                 if verbose:
@@ -282,8 +227,8 @@ def calculate_hartree_and_exchange_energies(l, results, uj=None, slater_ints=Non
         assert np.all(grouped_df['t'] == np.arange(-r, r+1)), 'Input dataframe is incomplete'
 
         val_squared = (grouped_df['value'].abs()**2).sum()
-        exchange_terms = val_squared * _exchange_k(l, *label[5:])
-        hartree_terms = val_squared * _hartree_k(l, label[5], label[6])
+        exchange_terms = val_squared * exchange_k(l, *label[5:])
+        hartree_terms = val_squared * hartree_k(l, label[5], label[6])
         new_data.append(label + (val_squared, ) + tuple(exchange_terms) + tuple(hartree_terms))
 
     new_tags = tags + ['w.w'] + [f'{name} F{2*i}' for name in ('exchange', 'hartree') for i in range(l+1)]

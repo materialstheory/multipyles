@@ -1,14 +1,21 @@
 # Multipyles: computing multipoles in python
 
-This repository contains python scripts to compute the multipole moments
+This repository contains a python package to compute the multipole moments
 from a local density matrix (e.g., from density-functional theory or dynamical
 mean-field theory):
 * `example.ipynb`: examples on how to use the code and benchmark against VASP
-for Cr2O3 (see folder `Cr2O3_benchmark/`)
-* `multipoles.py`: all the functions for calculating multipoles
-* `read_from_dft.py`: functions to read density matrices to feed into
-the program and calculated multipoles from different DFT codes for comparison
-* `helper.py`: helper functions needed in `multipoles.py`
+for Cr2O3 (data in folder `tests/Cr2O3_benchmark/`)
+* `multipyles/`: the python package, containing
+    * `multipyles.py`: all the functions for calculating multipoles and postprocessing the results
+    * `read_from_dft.py`: functions to read either density matrices to feed into
+    the program or calculated multipoles from different DFT codes for comparison
+    * `helper.py` and `multipole_eqs.py`: helper functions needed in `multipoles.py`
+* `tests/`: the test suite for pytest
+
+If you add the directory this README is in to the `sys.path`, you can import the code with
+```
+from multipyles import multipyles, read_from_dft
+```
 
 It currently works for all density matrices with the same orbital moment $l = l'$.
 
@@ -89,7 +96,7 @@ w^{(\nu)}_{i,t,k,p,r} = \sum_{x=-k\ldots k, \\ y=-p\ldots p} \xi_{k,p,r,x,y,t}
 
 # Copyright and license
 
-Copyright (C) 2022 ETH Zurich, Maximilian E. Merkel; Materials Theory Group, D-MATL
+Copyright (C) 2022-2023 ETH Zurich, Maximilian E. Merkel; Materials Theory Group, D-MATL
 
 This file is part of the repository multipyles.
 
