@@ -173,6 +173,66 @@ def calculate(density_matrix, cubic=True, verbose=False):
 
     return pd.DataFrame(results), l
 
+def write_shift_matrix_for_vasp(l, k, t, filename='shift.txt'):
+    """
+    Generates shift that triggers the multipole moment w^k0k_t with
+    the correct normalization. The index t labels the cubic multipole and
+    the matrix in orbital space is also in the cubic basis.
+
+    This shift matrix is then written to a file as a flatten matrix, where
+    every row of the file contains the real and imaginary part of that matrix.
+    This file is readable by the patched Vasp from this repository.
+
+    Warning: not tested for odd k. The implementation might be incorrect by a sign.
+
+    Parameters
+    ----------
+    l : int
+        The angular momentum l of the density matrix.
+    k : int
+        The rank/order of the charge multipole.
+    t : int
+        The concrete charge multipole to be written to file,
+        t in {-k, -k+1, ..., +k}. Unused if filename is None.
+    filename : string, optional
+        The name of the file to write the shift matrix to. The default is 'shift.txt'.
+
+    Returns
+    -------
+    shifts : numpy.array
+        The shift matrices for the parameters l, k but for all possible t.
+        The shape is (2k+1) x (2l+1) x (2l+1).
+    """
+
+    if k % 2 == 1:
+        print('WARNING: For odd k, the shift matrices are imaginary and therefore'
+             + 'not symmetrical. Please check carefully that there is no transpose'
+             + 'missing when using the shift matrix in DFT.')
+    shifts = np.array([[[omega(l, k, t_sph, m_a, m_b) * helper.minus_one_to_the(k)
+                         for m_b in range(-l, l+1)]
+                        for m_a in range(-l, l+1)]
+                       for t_sph in range(-k, k+1)])
+    trafo_matrix = helper.spherical_to_cubic(k)
+
+    # first transform to cubic multipoles
+    # TODO: rename indices to match function above
+    shifts = np.einsum('ab,bcd', trafo_matrix, shifts)
+
+    # then transform matrix into cubic basis
+    trafo_matrix = helper.spherical_to_cubic(l)
+    shifts = np.einsum('la,iab,kb->ilk', trafo_matrix, shifts, trafo_matrix.conj())
+
+    # Writes shift matrix for w^k0k_t to file
+    if filename is not None:
+        if not (-k <= t <= k):
+            raise ValueError('t has to be in {-k, -k+1, ..., +k}')
+
+        output = [f'{m.real:.18f} {m.imag:.18f}' for m in shifts[t+k].flatten()]
+        with open(filename, 'w') as file:
+            file.write('\n'.join(output))
+
+    return shifts
+
 def filter_results(df, cond):
     """ Filters dataframe df with condition from dictionary cond. """
     cond_fulfilled = (df[cond.keys()] == list(cond.values())).all(axis=1)
@@ -203,7 +263,7 @@ def transform_results_to_real(results):
 def calculate_hartree_and_exchange_energies(l, results, uj=None, slater_ints=None):
     """
     Calculates the Hartree and exchange energies for all multipole moments
-    following eqns. (22) and (29) from the Bultmark paper.
+    following Eqs. (22) and (29) from the Bultmark paper.
     Returns the squared absolute value, the Hartree and exchange contribution per
     Slater integral and in total for each multipole kpr.
     """

@@ -2,7 +2,7 @@
 
 This repository contains a python package to compute the multipole moments
 from a local density matrix (e.g., from density-functional theory or dynamical
-mean-field theory):
+mean-field theory) and files for performing multipole-constrained calculations:
 * `example.ipynb`: examples on how to use the code and benchmark against VASP
 for Cr2O3 (data in folder `tests/Cr2O3_benchmark/`)
 * `multipyles/`: the python package, containing
@@ -11,8 +11,10 @@ for Cr2O3 (data in folder `tests/Cr2O3_benchmark/`)
     the program or calculated multipoles from different DFT codes for comparison
     * `helper.py` and `multipole_eqs.py`: helper functions needed in `multipoles.py`
 * `tests/`: the test suite for pytest
+* `constrained_dft_vasp/`: the files needed to perform multipole-constrained
+DFT calculations. Please look at the README there for more information.
 
-If you add the directory this README is in to the `sys.path`, you can import the code with
+If you add the directory this README is in to the `sys.path`, you can import the python code with
 ```
 from multipyles import multipyles, read_from_dft
 ```
