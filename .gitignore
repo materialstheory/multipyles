@@ -1,3 +1,5 @@
 .spyproject
 .ipynb_checkpoints
 __pycache__
+vasp*.tgz
+

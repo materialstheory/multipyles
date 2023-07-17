@@ -1,0 +1,164 @@
+*** src/LDApU.F
+--- src_mod/LDApU.F
+***************
+*** 41 ****
+--- 42,46 ----
++       ! Modification for multipole perturbation
++       logical, private, save :: uses_multipole_perturbation
++       complex(q), private, allocatable, save :: local_shift_matrix(:,:)
++       real(q), private, allocatable, save :: multipole_shift(:)
++ 
+***************
+*** 73 ****
+--- 79,81 ----
++       real(q) :: shift_re, shift_im
++       integer :: ii, jj, ll
++ 
+***************
+*** 109 ****
+--- 118,125 ----
++       ! Checks if multipole perturbation used
++       uses_multipole_perturbation = .FALSE.
++       CALL PROCESS_INCAR(LOPEN, IU0, IU5, 'USES_MULTIPOLE_PERTURBATION', uses_multipole_perturbation, IERR, WRITEXMLINCAR)
++ 
++       ALLOCATE(multipole_shift(NTYP))
++       multipole_shift = 0
++       CALL PROCESS_INCAR(LOPEN, IU0, IU5, 'MULTIPOLE_SHIFT', multipole_shift, NTYP, IERR, WRITEXMLINCAR)
++ 
+***************
+*** 111 ****
+--- 128,152 ----
++       ! Allocates shift matrix for multipole perturbation
++       ll = -1
++       if (uses_multipole_perturbation) then
++           ! Extracts first l != -1 (assuming all l are the same or -1)
++           ! Todo: add more checks
++           do ii=1,NTYP
++               if(LANG_LDAPLUSU(ii) /= -1) then
++                   ll = LANG_LDAPLUSU(ii)
++                   exit
++               endif
++           enddo
++ 
++           allocate(local_shift_matrix(2*ll+1, 2*ll+1))
++           local_shift_matrix = (0._q, 0._q)
++           open(unit=94, file='shift.txt', status='old')
++ 
++           do ii=1,2*ll+1
++               do jj=1,2*ll+1
++                   read(94, *) shift_re, shift_im
++                   local_shift_matrix(ii, jj) = cmplx(shift_re, shift_im, q)
++               enddo
++           enddo
++           close(unit=94)
++       endif
++ 
+***************
+*** 189 ****
+--- 231 ----
++       IF(TLDA_U) THEN
+***************
+*** 195 ****
+--- 238,246 ----
++       ENDIF
++ 
++       IF(uses_multipole_perturbation) THEN
++           IF (IU6>=0) THEN
++              WRITE(IU6,140) LANG_LDAPLUSU
++              WRITE(IU6,150) multipole_shift
++              WRITE(IU6,160) local_shift_matrix
++           ENDIF
++       ENDIF
+***************
+*** 201 ****
+--- 253,256 ----
++   140 FORMAT('Multipole shift is selected, angular momentum for each species = ',20I5)
++   150 FORMAT('   shift (eV)                                 for each species = ',20F5.1)
++   160 FORMAT('Local shift matrix', 100F6.2)
++ 
+***************
+*** 243 ****
+!       USELDApU=TLDA_U
+--- 298 ----
+!       USELDApU=(TLDA_U .OR. uses_multipole_perturbation)
+***************
+*** 387 ****
+--- 443 ----
++       DBLE_LDAU=0._q
+***************
+*** 399 ****
+--- 456,459 ----
++       IF (uses_multipole_perturbation) THEN
++          CALL POT_MULTIPOLES(LNMAX,LMMAX,LMDIM,NCDIJ,ITYP,PP%LPS,CRHODE,CDIJ,DBLE_LDAU)
++       ENDIF
++ 
+***************
+*** 1290 ****
+--- 1351,1417 ----
++ !**********************************************************************
++ !
++ ! Multipole perturbation. Adapted from type 3.
++ !
++ !**********************************************************************
++ 
++       SUBROUTINE POT_MULTIPOLES(LNMAX,LMMAX,LMDIM,NCDIJ,ITYP,L_OF_LN,CRHODE,CDIJ,DBLE_LDAU)
++ 
++       IMPLICIT NONE
++ 
++       INTEGER LMDIM,LNMAX,LMMAX,NCDIJ
++       INTEGER ITYP
++       INTEGER L_OF_LN(LNMAX)
++ 
++       OVERLAP CDIJ(LMDIM,LMDIM,NCDIJ)
++       OVERLAP CRHODE(LMDIM,LMDIM,NCDIJ)
++ 
++       INTEGER LN1,LN2,LMN1,LMN2,LM1,LM2
++       INTEGER L1,L2,M1,M2
++       INTEGER ISP
++ 
++       REAL(q) DBLE_LDAU, DC1
++ 
++       OVERLAP POT_U(LMDIM,LMDIM,NCDIJ)
++ 
++       POT_U=0._q
++       DC1=0._q
++ 
++       LMN1=0
++       DO LN1=1,LNMAX
++       L1=L_OF_LN(LN1)
++       DO M1=1,2*L1+1
++          LMN1=LMN1+1
++          IF (L1 /= LANG_LDAPLUSU(ITYP)) CYCLE
++ 
++          LM1=L1**2+M1
++          LMN2=0
++          DO LN2=1,LNMAX
++          L2=L_OF_LN(LN2)
++          DO M2=1,2*L2+1
++             LMN2=LMN2+1
++             IF (L2 /= LANG_LDAPLUSU(ITYP)) CYCLE
++ 
++             LM2=L2**2+M2
++ 
++             DO ISP=1,NCDIJ,NCDIJ-1
++                IF (L1==L2) THEN
++                   POT_U(LMN1,LMN2,ISP) = -1._q*multipole_shift(ITYP)*local_shift_matrix(M2, M1)*OVERLAP_AE_(LN1,LN2,ITYP)
++ #ifndef realmode
++                   DC1=DC1+POT_U(LMN1,LMN2,ISP)*CONJG(CRHODE(LMN1,LMN2,ISP))
++ #else
++                   DC1=DC1+POT_U(LMN1,LMN2,ISP)*CRHODE(LMN1,LMN2,ISP)
++ #endif
++                ENDIF
++             ENDDO !(ISP)
++          ENDDO !(M2)
++          ENDDO !(LN2)
++       ENDDO !(M1)
++       ENDDO !(LN1)
++ 
++       CDIJ=CDIJ+POT_U
++       DBLE_LDAU=DBLE_LDAU-DC1
++ 
++       RETURN
++       END SUBROUTINE POT_MULTIPOLES
++ 
++ 

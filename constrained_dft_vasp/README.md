@@ -1,10 +1,8 @@
 # Constraining multipoles in DFT
 
-This folder contains the explanation of multipole-constrained
-density-functional theory (DFT) calculations in VASP, which might
-in the future be supplemented with the code of the implementation.
-In any case, we describe implementation details below for reproducibility
-using the input files of published work citing this repository.
+This folder contains the files necessary to perform
+multipole-constrained density-functional theory (DFT)
+calculations in VASP.
 
 Currently, only charge multipoles are implemented,
 of which only inversion-symmetric (order $k$ even) are tested.
@@ -19,18 +17,15 @@ and an according shift strength $s^I_{kt}$ on atom types $I$.
 
 In the following, we describe the steps to run calculation.
 
-## Description of the VASP modification
+## Compiling the VASP modification
 
-Our implementation modifies only `LDApU.F` from Vasp.
-We first read in the multipole-related parameters
-from the `INCAR` file (see below).
-Then, we read in the shift matrix `shift.txt` generated
-by the python package `multipyles` (see below).
-Finally, we implement a local, occupation-independent potential that is added
-to the +U potential if +U is used. This local potential is similar
-to the implementation of `POT_TYPE3`, just that the potential
-is now the shift strength (per atom type) times the multipole operator and therefore
-depends on the variables `M1` and `M2`.
+First, you need to compile the modified VASP code.
+`LDApU.F.diff` contains the necessary modifications
+to the `LDApU.F` file of VASP 6.3.0.
+An example of how this patch is applied
+can be found in the docker file here, which can be compiled with
+`docker build -t vasp:multipoles .`
+and only requires you to add your own `vasp.6.3.0.tgz` into this folder.
 
 ## Generating a shift matrix
 
@@ -83,3 +78,4 @@ and the publication
 [1] L. Schaufelberger, M. E. Merkel, A. M. Tehrani, N. A. Spaldin, and C. Ederer,
 “Exploring energy landscapes of charge multipoles using constrained density functional theory,”
 [arXiv:2305.13988 (2023)](https://doi.org/10.48550/arXiv.2305.13988)
+
