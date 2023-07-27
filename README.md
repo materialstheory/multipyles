@@ -4,7 +4,7 @@ This repository contains a python package to compute the multipole moments
 from a local density matrix (e.g., from density-functional theory or dynamical
 mean-field theory) and files for performing multipole-constrained calculations:
 * `example.ipynb`: examples on how to use the code and benchmark against VASP
-for Cr2O3 (data in folder `tests/Cr2O3_benchmark/`)
+for Cr2O3 (data in folder `tests/Cr2O3_benchmark_vasp/`)
 * `multipyles/`: the python package, containing
     * `multipyles.py`: all the functions for calculating multipoles and postprocessing the results
     * `read_from_dft.py`: functions to read either density matrices to feed into
@@ -26,7 +26,8 @@ This code is based on [Bultmark et al. (2009)](https://doi.org/10.1103/PhysRevB.
 ## Data sources and computable quantities
 
 Currently, there are implementations for reading the density matrix from VASP
-and abinit. However, every local density matrix can be used by reading it in as a numpy array.
+and less well tested ones for abinit and Elk.
+However, every local density matrix can be used by reading it in as a numpy array.
 From these matrices, the multipoles can be straightforwardly calculated.
 
 Alternatively, the multipoles computed by Elk and VASP (unpublished VASP modification
@@ -75,13 +76,13 @@ Then rewrite matrix in spin components:
 Formulas for multipoles ($\sigma = 1/2$):
 
 ```math
-\displaylines{\omega_{k,x,m_a,m_b} = \bar\omega_k \cdot (-1)^{l-m_b}
-\begin{pmatrix} l & k & l \\ -m_b & x & m_a \end{pmatrix} \\
+\displaylines{\omega_{k,x,m_a,m_b} = \bar\omega_k \cdot (-1)^{l-m_a}
+\begin{pmatrix} l & k & l \\ -m_a & x & m_b \end{pmatrix} \\
 
 \bar\omega_k = \left.\sqrt{(2l-k)! (2l+k+1)!} \right/ (2l)!\\
 
-\chi_{p,y,s_a,s_b} = \bar\chi_p \cdot (-1)^{\sigma-s_b}
-\begin{pmatrix} \sigma & p & \sigma \\ -s_b & y & s_a \end{pmatrix}\\
+\chi_{p,y,s_a,s_b} = \bar\chi_p \cdot (-1)^{\sigma-s_a}
+\begin{pmatrix} \sigma & p & \sigma \\ -s_a & y & s_b \end{pmatrix}\\
 
 \bar\chi_p = \sqrt{(2\sigma+p+1)!} = \sqrt{(p+2)!}\\
 

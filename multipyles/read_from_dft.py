@@ -2,6 +2,7 @@
 
 import numpy as np
 import pandas as pd
+import warnings
 
 _IO_ENTRIES = ['species', 'atom', 'nu', 'l1', 'l2', 'k', 'p', 'r', 't', 'value']
 
@@ -82,7 +83,7 @@ def read_densmat_from_vasp(source, select_atoms=None):
     """
     Reads the VASP OUTCAR for the density matrix of the last step from the
     section starting with 'atom = '. Currently only implemented for
-    spin-orbital coupled calculations.
+    spin-polarized calculations, collinear and non-collinear.
 
     Parameters
     ----------
@@ -94,7 +95,7 @@ def read_densmat_from_vasp(source, select_atoms=None):
 
     Returns
     -------
-    occupation_per_site : numpy.ndarray of float
+    occupation_per_site : numpy.ndarray of complex
         The occupation matrix per site in orbital-spin space.
     """
 
@@ -152,10 +153,14 @@ def read_densmat_from_vasp(source, select_atoms=None):
         reshaped_data[:, [0, 1], [0, 1]] = data.reshape(data.shape[0], nspins, dim, dim)
         data = reshaped_data
 
-    # Transposes data
-    # Vasp indexes spins in "Fortan order": uu, du, ud, dd but orbitals in C order for performance reasons
-    # Therefore, we only need to transpose spin degrees of freedom
-    return data.transpose((0, 3, 4, 2, 1))
+    # Transposes only orbital degrees of freedom:
+    # Vasp indexes spins in "C order": uu, ud, du, dd
+    # but orbitals in Fortran order for performance reasons.
+    # Determined from occupation eigenvalues and comparison with Elk code,
+    # see also Vasp integration test. Other hints:
+    # - C order of spins: cf. Supplemental material 10.1103/PhysRevB.106.035127
+    # - F order of orbitals: cf. relativistic.F in VASP source code
+    return data.transpose((0, 4, 3, 1, 2))
 
 
 def read_densmat_from_abinit(source, use_entries):
@@ -176,6 +181,8 @@ def read_densmat_from_abinit(source, use_entries):
     occupation_per_site : numpy.ndarray of float
         The occupation matrix per site in orbital-spin space.
     """
+
+    warnings.warn('Function not well tested.')
 
     reading = False
     for line in source:
@@ -204,4 +211,73 @@ def read_densmat_from_abinit(source, use_entries):
     occupation_per_site = np.array([[data/2, np.zeros_like(data)],
                                    [np.zeros_like(data), data/2]])
     occupation_per_site = occupation_per_site.transpose((2, 3, 4, 0, 1))
+    return occupation_per_site
+
+
+def read_densmat_from_elk(source, select_species_atoms=None):
+    """
+    Reads the density matrix from the DMATMT.OUT file from Elk.
+    This function is implemented for the integration test of Cr2O3 and untested
+    otherwise. Simply returns all density matrices without any information about
+    species and atoms.
+
+    Parameters
+    ----------
+    source : iterable of string
+        Data source, e.g. file or list of strings.
+    select_species_atoms : iterable of list, optional
+        Filters which species and atoms to read, as an iterable of tuples of
+        (species, atom). The density matrices of all selected atoms must have
+        the same angular momentum l. The default is None, where all species and
+        atoms are read.
+
+    Returns
+    -------
+    occupation_per_site : numpy.ndarray of complex
+        The occupation matrix per site in orbital-spin space.
+
+    """
+
+    warnings.warn('Function untested except by Cr2O3 integration test.')
+
+    densmats = {}
+    for line in source:
+        line = line.strip().split()
+        if line == []:
+            continue
+
+        if 'species,' in line:
+            species = int(line[0])
+            atom = int(line[1])
+            l = int(line[2])
+            print(atom, l)
+            if (select_species_atoms is None
+                    or any((atom==a and species==s for s, a in select_species_atoms))):
+                densmats[(species, atom)] = np.zeros((2*l+1, 2*l+1, 2, 2), dtype=complex)
+            continue
+
+        if (species, atom) not in densmats:
+            continue
+
+        if 'ispn,' in line:
+            ispn = int(line[0])-1
+            jspn = int(line[1])-1
+            continue
+
+        assert len(line) == 4
+
+        m1 = int(line[0]) + l
+        m2 = int(line[1]) + l
+        val = float(line[2]) + 1j*float(line[3])
+
+        # Density matrix seems to be written as <m1, ispn | rho | m2, jspn>
+        densmats[(species, atom)][m1, m2, ispn, jspn] = val
+
+    if select_species_atoms is None:
+        select_species_atoms = sorted(list(densmats.keys()))
+
+    occupation_per_site = np.array([densmats[key] for key in select_species_atoms])
+    assert isinstance(occupation_per_site, np.ndarray), ('Conversion to numpy array failed,'
+                                              + ' all atoms must have same l.')
+
     return occupation_per_site

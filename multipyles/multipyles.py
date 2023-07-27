@@ -67,14 +67,14 @@ def calculate(density_matrix, cubic=True, verbose=False):
 
         density_matrix_ls = density_matrix.transpose((0, 1, 3, 2, 4))
         print('Eigenvalues of density matrix in combined l-s space')
-        print(np.linalg.eigvalsh(density_matrix_ls.reshape(-1, 10, 10)))
+        print(np.linalg.eigvalsh(density_matrix_ls.reshape(-1, 4*l+2, 4*l+2)))
 
     # Transforms density matrix from cubic to spherical harmonics
     if cubic:
         print('Transforming from cubic to spherical harmonics')
         trafo_matrix = helper.spherical_to_cubic(l)
-        density_matrix = np.einsum('al,iabrs,bk->ilkrs', trafo_matrix.conj(), density_matrix,
-                                   trafo_matrix)
+        density_matrix = np.einsum('al,iabrs,bk->ilkrs', trafo_matrix, density_matrix,
+                                    trafo_matrix.conj())
 
         if verbose:
             print('-'*40)
@@ -206,21 +206,21 @@ def write_shift_matrix_for_vasp(l, k, t, filename='shift.txt'):
 
     if k % 2 == 1:
         print('WARNING: For odd k, the shift matrices are imaginary and therefore'
-             + 'not symmetrical. Please check carefully that there is no transpose'
-             + 'missing when using the shift matrix in DFT.')
+             + ' not symmetrical. Please check carefully that there is no transpose'
+             + ' missing when using the shift matrix in DFT.')
     shifts = np.array([[[omega(l, k, t_sph, m_a, m_b) * helper.minus_one_to_the(k)
                          for m_b in range(-l, l+1)]
                         for m_a in range(-l, l+1)]
                        for t_sph in range(-k, k+1)])
-    trafo_matrix = helper.spherical_to_cubic(k)
 
     # first transform to cubic multipoles
     # TODO: rename indices to match function above
+    trafo_matrix = helper.spherical_to_cubic(k)
     shifts = np.einsum('ab,bcd', trafo_matrix, shifts)
 
     # then transform matrix into cubic basis
     trafo_matrix = helper.spherical_to_cubic(l)
-    shifts = np.einsum('la,iab,kb->ilk', trafo_matrix, shifts, trafo_matrix.conj())
+    shifts = np.einsum('la,iab,kb->ilk', trafo_matrix.conj(), shifts, trafo_matrix)
 
     # Writes shift matrix for w^k0k_t to file
     if filename is not None:

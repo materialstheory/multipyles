@@ -35,7 +35,7 @@ def spherical_to_cubic(l):
     angular momentum l. Returns (2l+1) x (2l+1) complex numpy.ndarray.
     """
     # Inspired by the tools.py function from the tmom helper functions.
-    # But it's just a definition of cubic harmonics
+    # But it is just a definition of cubic harmonics
     sqrt2 = np.sqrt(2)
 
     trafo_matrix = np.zeros((2*l+1, 2*l+1), dtype=complex)

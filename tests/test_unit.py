@@ -2,7 +2,7 @@ import numpy as np
 
 from multipyles.multipyles import write_shift_matrix_for_vasp
 from multipyles.multipole_eqs import chi, SIGMA
-from multipyles.helper import minus_one_to_the
+from multipyles.helper import minus_one_to_the, spherical_to_cubic
 
 def test_minus_one_to_the():
     assert minus_one_to_the(0) == 1
@@ -15,25 +15,37 @@ def test_chi_p0():
         for s_b in s_range:
             assert np.isclose(chi(0, 0, s_a, s_b), int(s_a == s_b)), (s_a, s_b)
 
+def test_spherical_to_cubic_l1():
+    sqrt2 = np.sqrt(2)
+    trafo_p = np.array([[1j/sqrt2, 0, 1j/sqrt2],
+                        [0, 1, 0],
+                        [1/sqrt2, 0, -1/sqrt2]])
+
+    assert np.allclose(trafo_p, spherical_to_cubic(1))
+
 # ---------- Tests for write_shift_matrix_for_vasp ----------
 def test_compare_vasp_shift_matrices():
     matrix = write_shift_matrix_for_vasp(2, 2, None, None)
     assert matrix.shape == (5, 5, 5)
 
-    for t in (-1, 0, 2):
+    for t in (-2, -1, 0, 1, 2):
         old_matrix = np.loadtxt(f'tests/shift_files/shift_22{t}.txt')
         old_matrix = old_matrix[:, 0] + 1j*old_matrix[:, 1]
+        print(old_matrix)
         old_matrix = old_matrix.reshape(5, 5)
-        assert np.allclose(matrix[2+t], old_matrix), t
+        assert np.allclose(matrix[2+t], old_matrix), f't={t}'
 
     matrix = write_shift_matrix_for_vasp(3, 1, None, None)
     assert matrix.shape == (3, 7, 7)
 
+    # TODO: regenerate files with correct sign, remove minus from assert
     for t in (-1, 0, 1):
         old_matrix = np.loadtxt(f'tests/shift_files/shift_31{t}.txt')
         old_matrix = old_matrix[:, 0] + 1j*old_matrix[:, 1]
         old_matrix = old_matrix.reshape(7, 7)
-        assert np.allclose(matrix[1+t], old_matrix), t
+        print(matrix[1+t])
+        print(old_matrix)
+        assert np.allclose(matrix[1+t], -old_matrix), f't={t}'
 
 def test_shift_matrix_for_monopoles():
     for l in range(4):
