@@ -161,7 +161,7 @@ def calculate(density_matrix, cubic=True, verbose=False):
                     print('chi(p, y, s_a, s_b)')
                     print(chi_matrix)
 
-                # u=nu, m/n=m1/m2, r/s=s1,s2
+                # u=nu, m/n=m/m', r/s=s,s'
                 multipole_matrix_sph = np.einsum('xyt,xmn,yrs,uinmsr->uit', xi_matrix,
                                                  omega_matrix, chi_matrix, density_matrix_tr)
 
@@ -214,13 +214,12 @@ def write_shift_matrix_for_vasp(l, k, t, filename='shift.txt'):
                        for t_sph in range(-k, k+1)])
 
     # first transform to cubic multipoles
-    # TODO: rename indices to match function above
     trafo_matrix = helper.spherical_to_cubic(k)
-    shifts = np.einsum('ab,bcd', trafo_matrix, shifts)
+    shifts = np.einsum('ij,jmn', trafo_matrix, shifts)
 
     # then transform matrix into cubic basis
     trafo_matrix = helper.spherical_to_cubic(l)
-    shifts = np.einsum('la,iab,kb->ilk', trafo_matrix.conj(), shifts, trafo_matrix)
+    shifts = np.einsum('al,ilk,bk->iab', trafo_matrix.conj(), shifts, trafo_matrix)
 
     # Writes shift matrix for w^k0k_t to file
     if filename is not None:

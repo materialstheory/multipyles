@@ -28,27 +28,26 @@ def test_compare_vasp_shift_matrices():
     matrix = write_shift_matrix_for_vasp(2, 2, None, None)
     assert matrix.shape == (5, 5, 5)
 
-    for t in (-2, -1, 0, 1, 2):
-        old_matrix = np.loadtxt(f'tests/shift_files/shift_22{t}.txt')
-        old_matrix = old_matrix[:, 0] + 1j*old_matrix[:, 1]
-        print(old_matrix)
-        old_matrix = old_matrix.reshape(5, 5)
-        assert np.allclose(matrix[2+t], old_matrix), f't={t}'
+    for t in range(-2, 3):
+        saved_matrix = np.loadtxt(f'tests/shift_files/shift_22{t}.txt')
+        saved_matrix = saved_matrix[:, 0] + 1j*saved_matrix[:, 1]
+        saved_matrix = saved_matrix.reshape(5, 5)
+        print(saved_matrix)
+        assert np.allclose(matrix[2+t], saved_matrix), f't={t}'
 
     matrix = write_shift_matrix_for_vasp(3, 1, None, None)
     assert matrix.shape == (3, 7, 7)
 
-    # TODO: regenerate files with correct sign, remove minus from assert
-    for t in (-1, 0, 1):
-        old_matrix = np.loadtxt(f'tests/shift_files/shift_31{t}.txt')
-        old_matrix = old_matrix[:, 0] + 1j*old_matrix[:, 1]
-        old_matrix = old_matrix.reshape(7, 7)
-        print(matrix[1+t])
-        print(old_matrix)
-        assert np.allclose(matrix[1+t], -old_matrix), f't={t}'
+    for t in range(-1, 2):
+        saved_matrix = np.loadtxt(f'tests/shift_files/shift_31{t}.txt')
+        saved_matrix = saved_matrix[:, 0] + 1j*saved_matrix[:, 1]
+        saved_matrix = saved_matrix.reshape(7, 7)
+        print(saved_matrix)
+        assert np.allclose(matrix[1+t], saved_matrix), f't={t}'
 
 def test_shift_matrix_for_monopoles():
     for l in range(4):
         matrix = write_shift_matrix_for_vasp(l, 0, None, None)
         assert matrix.shape == (1, 2*l+1, 2*l+1)
+        # Monopoles are simply identity matrices
         assert np.allclose(matrix, np.eye(2*l+1))

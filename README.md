@@ -41,11 +41,21 @@ energies.
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6907024.svg)](https://doi.org/10.5281/zenodo.6907024)
 
-Please use the doi linked in the README.md of the newest stable release.
+Please use the doi linked in the [README.md on the main branch](https://github.com/materialstheory/multipyles/blob/main/README.md).
 
 ## Equations
 
 Brief summary of the important steps for this code with explicit summations:
+
+### Transformation from cubic to spherical harmonics
+
+`multipyles.helper.spherical_to_cubic` returns the matrix M to transform
+the complex spherical harmonics $|c_m \rangle$
+to the real cubic harmonics $|r_m \rangle$
+with $|r_m\rangle = \sum_n M_{mn} |c_n \rangle$ so that the density matrix in complex spherical harmonics is
+```math
+\rho_{m,m'} = \langle c_m | \rho | c_{m'} \rangle = \sum_{nn'} M_{nm} \langle r_n | \rho | r_{n'} \rangle M^*_{n'm'}
+```
 
 ### Decomposition of occupation in Pauli matrices
 
@@ -76,13 +86,13 @@ Then rewrite matrix in spin components:
 Formulas for multipoles ($\sigma = 1/2$):
 
 ```math
-\displaylines{\omega_{k,x,m_a,m_b} = \bar\omega_k \cdot (-1)^{l-m_a}
-\begin{pmatrix} l & k & l \\ -m_a & x & m_b \end{pmatrix} \\
+\displaylines{\omega_{k,x,m,m'} = \bar\omega_k \cdot (-1)^{l-m}
+\begin{pmatrix} l & k & l \\ -m & x & m' \end{pmatrix} \\
 
 \bar\omega_k = \left.\sqrt{(2l-k)! (2l+k+1)!} \right/ (2l)!\\
 
-\chi_{p,y,s_a,s_b} = \bar\chi_p \cdot (-1)^{\sigma-s_a}
-\begin{pmatrix} \sigma & p & \sigma \\ -s_a & y & s_b \end{pmatrix}\\
+\chi_{p,y,s,s'} = \bar\chi_p \cdot (-1)^{\sigma-s}
+\begin{pmatrix} \sigma & p & \sigma \\ -s & y & s' \end{pmatrix}\\
 
 \bar\chi_p = \sqrt{(2\sigma+p+1)!} = \sqrt{(p+2)!}\\
 

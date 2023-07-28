@@ -16,22 +16,22 @@ def _omega_norm(l, k):
     factorial = np.math.factorial
     return np.sqrt(factorial(2*l-k) * factorial(2*l+k+1)) / factorial(2*l)
 
-def omega(l, k, x, m_a, m_b):
+def omega(l, k, x, m, mp):
     """
     The charge-dependent part, Eq. (20) from Bultmark 2009.
     Note that in that equation, the definition as < m_b | v_x^k | m_a >
     seems to imply a transpose.
     """
-    return float(helper.minus_one_to_the(l-m_a) * _omega_norm(l, k)
-                 * cg.Wigner3j(l, -m_a, k, x, l, m_b).doit())
+    return float(helper.minus_one_to_the(l-m) * _omega_norm(l, k)
+                 * cg.Wigner3j(l, -m, k, x, l, mp).doit())
 
 def _chi_norm(p):
     return np.sqrt(np.math.factorial(p+2))
 
-def chi(p, y, s_a, s_b):
+def chi(p, y, s, sp):
     """ The spin-dependent part, Eq. (24) from Bultmark 2009. """
-    return complex(((-1)**(SIGMA-s_a) * _chi_norm(p)
-                    * cg.Wigner3j(SIGMA, -s_a, p, y, SIGMA, s_b).doit()).evalf())
+    return complex(((-1)**(SIGMA-s) * _chi_norm(p)
+                    * cg.Wigner3j(SIGMA, -s, p, y, SIGMA, sp).doit()).evalf())
 
 def _xi_norm(k, p, r):
     factorial = np.math.factorial
