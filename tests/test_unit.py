@@ -1,3 +1,7 @@
+"""
+Contains all unit tests for the multipyles package.
+"""
+
 import numpy as np
 
 from multipyles.multipyles import write_shift_matrix_for_vasp
@@ -23,8 +27,8 @@ def test_spherical_to_cubic_l1():
 
     assert np.allclose(trafo_p, spherical_to_cubic(1))
 
-# ---------- Tests for write_shift_matrix_for_vasp ----------
 def test_compare_vasp_shift_matrices():
+    """ Tests write_shift_matrix_for_vasp against previously generated files. """
     matrix = write_shift_matrix_for_vasp(2, 2, None, None)
     assert matrix.shape == (5, 5, 5)
 
@@ -46,8 +50,8 @@ def test_compare_vasp_shift_matrices():
         assert np.allclose(matrix[1+t], saved_matrix), f't={t}'
 
 def test_shift_matrix_for_monopoles():
+    """ Tests that monopole matrices are simply identity matrices. """
     for l in range(4):
         matrix = write_shift_matrix_for_vasp(l, 0, None, None)
         assert matrix.shape == (1, 2*l+1, 2*l+1)
-        # Monopoles are simply identity matrices
         assert np.allclose(matrix, np.eye(2*l+1))

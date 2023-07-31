@@ -52,7 +52,8 @@ def exchange_k(l, k1, p, r):
     values = np.zeros_like(k_range, dtype=float)
     values[:] = -(2*l+1)**2 * (2*k1+1) * (2*r+1) / 4 * helper.minus_one_to_the(k1)
     values /= abs(_xi_norm(k1, p, r))**2 * _omega_norm(l, k1)**2
-    values *= np.array([cg.Wigner3j(l, 0, k, 0, l, 0).doit()**2 * cg.Wigner6j(l, l, k1, l, l, k).doit()
+    values *= np.array([cg.Wigner3j(l, 0, k, 0, l, 0).doit()**2
+                        * cg.Wigner6j(l, l, k1, l, l, k).doit()
                         for k in k_range], dtype=float)
     return values
 

@@ -1,8 +1,11 @@
-#!/usr/bin/env python3
+"""
+Contains functions to read density matrices from different codes
+as well as multipoles computed in VASP and Elk.
+"""
 
+import warnings
 import numpy as np
 import pandas as pd
-import warnings
 
 _IO_ENTRIES = ['species', 'atom', 'nu', 'l1', 'l2', 'k', 'p', 'r', 't', 'value']
 

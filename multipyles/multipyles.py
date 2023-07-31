@@ -290,9 +290,12 @@ def calculate_hartree_and_exchange_energies(l, results, uj=None, slater_ints=Non
         hartree_terms = val_squared * hartree_k(l, label[5], label[6])
         new_data.append(label + (val_squared, ) + tuple(exchange_terms) + tuple(hartree_terms))
 
-    new_tags = tags + ['w.w'] + [f'{name} F{2*i}' for name in ('exchange', 'hartree') for i in range(l+1)]
+    new_tags = tags + ['w.w'] + [f'{name} F{2*i}' for name in ('exchange', 'hartree')
+                                 for i in range(l+1)]
     energy_df = pd.DataFrame.from_records(new_data, columns=new_tags)
 
-    energy_df['exchange total'] = sum([slater_ints[i] * energy_df[f'exchange F{2*i}'] for i in range(l+1)])
-    energy_df['hartree total'] = sum([slater_ints[i] * energy_df[f'hartree F{2*i}'] for i in range(l+1)])
+    energy_df['exchange total'] = sum([slater_ints[i] * energy_df[f'exchange F{2*i}']
+                                       for i in range(l+1)])
+    energy_df['hartree total'] = sum([slater_ints[i] * energy_df[f'hartree F{2*i}']
+                                      for i in range(l+1)])
     return energy_df

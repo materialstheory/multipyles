@@ -1,3 +1,7 @@
+"""
+Contains all integration tests for the multipyles package.
+"""
+
 from io import StringIO
 import numpy as np
 import pandas as pd
@@ -27,7 +31,8 @@ def test_cr2o3_vasp():
     assert l == 2
 
     with open('tests/Cr2O3_benchmark_vasp/TENSMOM.R1.OUT', 'r') as file:
-        res_vasp = multipyles.filter_results(read_from_dft.read_multipoles_from_vasp(file), {'l1': 2, 'l2': 2})
+        res_vasp = multipyles.filter_results(read_from_dft.read_multipoles_from_vasp(file),
+                                             {'l1': 2, 'l2': 2})
     # Makes atoms in Vasp zero-indexed for comparability with multipyles result
     res_vasp['atom'] -= 1
 
@@ -46,15 +51,17 @@ def test_cr2o3_vasp():
 def test_cr2o3_elk():
     """ Benchmark of l=l'=2 Cr density matrix against Elk calculation of Cr2O3. """
     with open('tests/Cr2O3_benchmark_elk/DMATMT.OUT', 'r') as file:
-        occupation_per_site = read_from_dft.read_densmat_from_elk(file, select_species_atoms=((1, 1), (1, 2),
-                                                                                              (1, 3), (1, 4)))
+        occupation_per_site = read_from_dft.read_densmat_from_elk(file,
+                                                                  select_species_atoms=((1, 1), (1, 2),
+                                                                                        (1, 3), (1, 4)))
 
     # Calculates multipoles
     results, l = multipyles.calculate(occupation_per_site, cubic=False, verbose=True)
     assert l == 2
 
     with open('tests/Cr2O3_benchmark_elk/TMDFTUNU.OUT', 'r') as file:
-        res_elk = multipyles.filter_results(read_from_dft.read_multipoles_from_elk(file), {'species': 1, 'l1': 2, 'l2': 2})
+        res_elk = multipyles.filter_results(read_from_dft.read_multipoles_from_elk(file),
+                                            {'species': 1, 'l1': 2, 'l2': 2})
     # Makes atoms in Elk zero-indexed for comparability with multipyles result
     res_elk['atom'] -= 1
 
