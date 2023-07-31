@@ -39,7 +39,7 @@ energies.
 
 ## How to cite
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6907024.svg)](https://doi.org/10.5281/zenodo.6907024)
+[![DOI](https://zenodo.org/badge/517751645.svg)](https://zenodo.org/badge/latestdoi/517751645)
 
 Please use the doi linked in the [README.md on the main branch](https://github.com/materialstheory/multipyles/blob/main/README.md).
 
