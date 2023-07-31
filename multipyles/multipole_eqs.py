@@ -16,18 +16,22 @@ def _omega_norm(l, k):
     factorial = np.math.factorial
     return np.sqrt(factorial(2*l-k) * factorial(2*l+k+1)) / factorial(2*l)
 
-def omega(l, k, x, m_a, m_b):
-    """ The charge-dependent part, Eq. (20) from Bultmark 2009. """
-    return float(helper.minus_one_to_the(l-m_b) * _omega_norm(l, k)
-                 * cg.Wigner3j(l, -m_b, k, x, l, m_a).doit())
+def omega(l, k, x, m, mp):
+    """
+    The charge-dependent part, Eq. (20) from Bultmark 2009.
+    Note that in that equation, the definition as < m_b | v_x^k | m_a >
+    seems to imply a transpose.
+    """
+    return float(helper.minus_one_to_the(l-m) * _omega_norm(l, k)
+                 * cg.Wigner3j(l, -m, k, x, l, mp).doit())
 
 def _chi_norm(p):
     return np.sqrt(np.math.factorial(p+2))
 
-def chi(p, y, s_a, s_b):
+def chi(p, y, s, sp):
     """ The spin-dependent part, Eq. (24) from Bultmark 2009. """
-    return complex(((-1)**(SIGMA-s_b) * _chi_norm(p)
-                    * cg.Wigner3j(SIGMA, -s_b, p, y, SIGMA, s_a).doit()).evalf())
+    return complex(((-1)**(SIGMA-s) * _chi_norm(p)
+                    * cg.Wigner3j(SIGMA, -s, p, y, SIGMA, sp).doit()).evalf())
 
 def _xi_norm(k, p, r):
     factorial = np.math.factorial
@@ -48,7 +52,8 @@ def exchange_k(l, k1, p, r):
     values = np.zeros_like(k_range, dtype=float)
     values[:] = -(2*l+1)**2 * (2*k1+1) * (2*r+1) / 4 * helper.minus_one_to_the(k1)
     values /= abs(_xi_norm(k1, p, r))**2 * _omega_norm(l, k1)**2
-    values *= np.array([cg.Wigner3j(l, 0, k, 0, l, 0).doit()**2 * cg.Wigner6j(l, l, k1, l, l, k).doit()
+    values *= np.array([cg.Wigner3j(l, 0, k, 0, l, 0).doit()**2
+                        * cg.Wigner6j(l, l, k1, l, l, k).doit()
                         for k in k_range], dtype=float)
     return values
 
