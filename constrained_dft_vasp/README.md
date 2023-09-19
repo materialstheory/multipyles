@@ -77,5 +77,4 @@ and the publication
 
 [1] L. Schaufelberger, M. E. Merkel, A. M. Tehrani, N. A. Spaldin, and C. Ederer,
 “Exploring energy landscapes of charge multipoles using constrained density functional theory,”
-[arXiv:2305.13988 (2023)](https://doi.org/10.48550/arXiv.2305.13988)
-
+[Phys. Rev. Research 5, 033172 (2023)](https://doi.org/10.1103/PhysRevResearch.5.033172)
