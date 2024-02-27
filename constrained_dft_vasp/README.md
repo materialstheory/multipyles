@@ -69,6 +69,10 @@ This works with and without DFT+U.
 Since both use the parameter `LDAUL`,
 the shell that shift and +U are applied on has to be the same.
 
+Often, it makes sense to turn off the symmetries (`ISYM` flag in VASP).
+Otherwise, VASP can find a higher symmetry based on the atomic positions
+than desired when applying a multipolar shift.
+
 ## How to cite
 
 If you use this method, please cite both the Zenodo doi

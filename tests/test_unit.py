@@ -5,7 +5,7 @@ Contains all unit tests for the multipyles package.
 import numpy as np
 
 from multipyles.multipyles import write_shift_matrix_for_vasp
-from multipyles.multipole_eqs import chi, SIGMA
+from multipyles.multipole_eqs import spin_part, SIGMA
 from multipyles.helper import minus_one_to_the, spherical_to_cubic
 
 def test_minus_one_to_the():
@@ -13,11 +13,11 @@ def test_minus_one_to_the():
     assert minus_one_to_the(1) == -1
 
 def test_chi_p0():
-    """ Checks that for p=0, the spin matrix chi is unity. """
+    """ Checks that for p=0, the spin matrix spin_part is unity. """
     s_range = (+SIGMA, -SIGMA)
-    for s_a in s_range:
-        for s_b in s_range:
-            assert np.isclose(chi(0, 0, s_a, s_b), int(s_a == s_b)), (s_a, s_b)
+    for s in s_range:
+        for sp in s_range:
+            assert np.isclose(spin_part(0, 0, s, sp), int(s == sp)), (s, sp)
 
 def test_spherical_to_cubic_l1():
     sqrt2 = np.sqrt(2)

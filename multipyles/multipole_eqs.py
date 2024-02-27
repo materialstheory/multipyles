@@ -12,28 +12,28 @@ SIGMA = sympy.S(1)/2
 PAULI_MATRICES = np.array([[[0, 1], [1, 0]], [[0, -1j], [1j, 0]],
                            [[1, 0], [0, -1]], [[1, 0], [0, 1]]]) # x, y, z, 0
 
-def _omega_norm(l, k):
+def _norm_orbital(l, k):
     factorial = np.math.factorial
     return np.sqrt(factorial(2*l-k) * factorial(2*l+k+1)) / factorial(2*l)
 
-def omega(l, k, x, m, mp):
+def orbital_part(l, k, x, m, mp):
     """
     The charge-dependent part, Eq. (20) from Bultmark 2009.
     Note that in that equation, the definition as < m_b | v_x^k | m_a >
     seems to imply a transpose.
     """
-    return float(helper.minus_one_to_the(l-m) * _omega_norm(l, k)
+    return float(helper.minus_one_to_the(l-m) * _norm_orbital(l, k)
                  * cg.Wigner3j(l, -m, k, x, l, mp).doit())
 
-def _chi_norm(p):
+def _norm_spin(p):
     return np.sqrt(np.math.factorial(p+2))
 
-def chi(p, y, s, sp):
+def spin_part(p, y, s, sp):
     """ The spin-dependent part, Eq. (24) from Bultmark 2009. """
-    return complex(((-1)**(SIGMA-s) * _chi_norm(p)
+    return complex(((-1)**(SIGMA-s) * _norm_spin(p)
                     * cg.Wigner3j(SIGMA, -s, p, y, SIGMA, sp).doit()).evalf())
 
-def _xi_norm(k, p, r):
+def _norm_coupling(k, p, r):
     factorial = np.math.factorial
     g = k+p+r
     double_factorial = [np.prod(np.arange(n, 0, -2)) for n in range(g+1)]
@@ -41,9 +41,9 @@ def _xi_norm(k, p, r):
             * double_factorial[g-2*k] * double_factorial[g-2*p]
             * double_factorial[g-2*r] / double_factorial[g])
 
-def xi(k, p, r, x, y, t):
+def coupling_part(k, p, r, x, y, t):
     """ The coupling of charge and spin part, Eq. (26) from Bultmark 2009. """
-    return complex(_xi_norm(k, p, r) * helper.minus_one_to_the(k-x+p-y)
+    return complex(_norm_coupling(k, p, r) * helper.minus_one_to_the(k-x+p-y)
                    * cg.Wigner3j(k, -x, r, t, p, -y).doit())
 
 def exchange_k(l, k1, p, r):
@@ -51,7 +51,7 @@ def exchange_k(l, k1, p, r):
     k_range = np.arange(0, 2*l+1, 2)
     values = np.zeros_like(k_range, dtype=float)
     values[:] = -(2*l+1)**2 * (2*k1+1) * (2*r+1) / 4 * helper.minus_one_to_the(k1)
-    values /= abs(_xi_norm(k1, p, r))**2 * _omega_norm(l, k1)**2
+    values /= abs(_norm_coupling(k1, p, r))**2 * _norm_orbital(l, k1)**2
     values *= np.array([cg.Wigner3j(l, 0, k, 0, l, 0).doit()**2
                         * cg.Wigner6j(l, l, k1, l, l, k).doit()
                         for k in k_range], dtype=float)
@@ -65,7 +65,7 @@ def hartree_k(l, k1, p):
     k_range = np.arange(0, 2*l+1, 2)
     values = np.zeros_like(k_range, dtype=float)
     values[:] = (2*l+1)**2 / 2
-    values /= _omega_norm(l, k1)**2
+    values /= _norm_orbital(l, k1)**2
     values *= np.array([cg.Wigner3j(l, 0, k, 0, l, 0).doit()**2 * float(k==k1 and p==0)
                         for k in k_range], dtype=float)
     return values

@@ -16,7 +16,6 @@ sqrt3 = np.sqrt(3)
 sqrt6 = np.sqrt(6)
 
 t2g_indices = [(i, s) for i in (3, 1, 0) for s in range(2)]
-jeff_indices = [(j, sign*mj) for j in (1, 3) for mj in range(1, j+1, 2) for sign in (-1, 1)]
 
 #                      xz up      down       yz up     down      xy up     down
 jeff_rot = np.array([[-1j/sqrt3,  0       ,  1/sqrt3,  0      ,  0      , -1/sqrt3], #1/2, -1/2

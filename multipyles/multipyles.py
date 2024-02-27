@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 
 from . import helper
-from .multipole_eqs import omega, chi, xi, exchange_k, hartree_k, SIGMA, PAULI_MATRICES
+from .multipole_eqs import orbital_part, spin_part, coupling_part, exchange_k, hartree_k, SIGMA, PAULI_MATRICES
 
 _IO_ENTRIES = ['species', 'atom', 'nu', 'l1', 'l2', 'k', 'p', 'r', 't', 'value']
 
@@ -138,32 +138,32 @@ def calculate(density_matrix, cubic=True, verbose=False):
     m_range = range(-l, l+1)
     for k in range(2*l+1): # orbital dof
         x_range = range(-k, k+1)
-        omega_matrix = np.array([[[omega(l, k, x, m_a, m_b) for m_b in m_range]
-                                  for m_a in m_range] for x in x_range])
+        orbital_matrix = np.array([[[orbital_part(l, k, x, m, mp) for mp in m_range]
+                                    for m in m_range] for x in x_range])
 
         for p in (0, 1): # spin dof
             y_range = range(-p, p+1)
-            chi_matrix = np.array([[[chi(p, y, s_a, s_b) for s_b in s_range]
-                                    for s_a in s_range] for y in y_range])
+            spin_matrix = np.array([[[spin_part(p, y, s, sp) for sp in s_range]
+                                     for s in s_range] for y in y_range])
 
             for r in range(abs(k-p), k+p+1): # tensor rank
                 t_range = range(-r, r+1)
-                xi_matrix = np.array([[[xi(k, p, r, x, y, t) for t in t_range]
-                                       for y in y_range] for x in x_range])
+                coupling_matrix = np.array([[[coupling_part(k, p, r, x, y, t) for t in t_range]
+                                             for y in y_range] for x in x_range])
 
                 if verbose:
                     print('-'*40)
                     print('Multipole matrices')
-                    print('xi(k, p, r, x, y, t)')
-                    print(xi_matrix)
-                    print('omega(k, x, m_a, m_b)')
-                    print(omega_matrix)
-                    print('chi(p, y, s_a, s_b)')
-                    print(chi_matrix)
+                    print('coupling_part(k, p, r, x, y, t)')
+                    print(coupling_matrix)
+                    print('orbital_part(k, x, m, mp)')
+                    print(orbital_matrix)
+                    print('spin_part(p, y, s, sp)')
+                    print(spin_matrix)
 
                 # u=nu, m/n=m/m', r/s=s,s'
-                multipole_matrix_sph = np.einsum('xyt,xmn,yrs,uinmsr->uit', xi_matrix,
-                                                 omega_matrix, chi_matrix, density_matrix_tr)
+                multipole_matrix_sph = np.einsum('xyt,xmn,yrs,uinmsr->uit', coupling_matrix,
+                                                 orbital_matrix, spin_matrix, density_matrix_tr)
 
                 for tr, mm_per_tr in enumerate(multipole_matrix_sph):
                     for i, mm_per_atom in enumerate(mm_per_tr):
@@ -208,9 +208,9 @@ def write_shift_matrix_for_vasp(l, k, t, filename='shift.txt'):
         print('WARNING: For odd k, the shift matrices are imaginary and therefore'
              + ' not symmetrical. Please check carefully that there is no transpose'
              + ' missing when using the shift matrix in DFT.')
-    shifts = np.array([[[omega(l, k, t_sph, m_a, m_b) * helper.minus_one_to_the(k)
-                         for m_b in range(-l, l+1)]
-                        for m_a in range(-l, l+1)]
+    shifts = np.array([[[orbital_part(l, k, t_sph, m, mp) * helper.minus_one_to_the(k)
+                         for mp in range(-l, l+1)]
+                        for m in range(-l, l+1)]
                        for t_sph in range(-k, k+1)])
 
     # first transform to cubic multipoles
@@ -226,7 +226,7 @@ def write_shift_matrix_for_vasp(l, k, t, filename='shift.txt'):
         if not (-k <= t <= k):
             raise ValueError('t has to be in {-k, -k+1, ..., +k}')
 
-        output = [f'{m.real:.18f} {m.imag:.18f}' for m in shifts[t+k].flatten()]
+        output = [f'{matrix.real:.18f} {matrix.imag:.18f}' for matrix in shifts[t+k].flatten()]
         with open(filename, 'w') as file:
             file.write('\n'.join(output))
 

@@ -85,26 +85,34 @@ Then rewrite matrix in spin components:
 
 Formulas for multipoles ($\sigma = 1/2$):
 
+Orbital part `orbital_part(l, k, x, m, mp)` (`m`$\equiv m$, `mp`$\equiv m'$):
 ```math
-\displaylines{\omega_{k,x,m,m'} = \bar\omega_k \cdot (-1)^{l-m}
+\displaylines{\langle m | v^k_x | m' \rangle = n_k^{-1} \cdot (-1)^{l-m}
 \begin{pmatrix} l & k & l \\ -m & x & m' \end{pmatrix} \\
+n_k^{-1} = \left.\sqrt{(2l-k)! (2l+k+1)!} \right/ (2l)!}
+```
 
-\bar\omega_k = \left.\sqrt{(2l-k)! (2l+k+1)!} \right/ (2l)!\\
-
-\chi_{p,y,s,s'} = \bar\chi_p \cdot (-1)^{\sigma-s}
+Spin part `spin_part(p, y, s, sp)` (`s`$\equiv s$, `sp`$\equiv s'$, $\sigma=1/2$):
+```math
+\displaylines{\langle s | t^p_y | s' \rangle = n_p^{-1} \cdot (-1)^{\sigma-s}
 \begin{pmatrix} \sigma & p & \sigma \\ -s & y & s' \end{pmatrix}\\
+n_p^{-1} = \sqrt{(2\sigma+p+1)!} = \sqrt{(p+2)!}}
+```
 
-\bar\chi_p = \sqrt{(2\sigma+p+1)!} = \sqrt{(p+2)!}\\
-
-\xi_{k,p,r,x,y,t} = \bar\xi_{k,p,r} \cdot (-1)^{k-x+p-y}
+Coupling part `coupling_part(k, p, r, x, y, t)`:
+```math
+\displaylines{\xi^{k,p,r}_{x,y,t} = \bar n_{k,p,r}^{-1} \cdot (-1)^{k-x+p-y}
 \begin{pmatrix} k & r & p \\ -x & t & -y \end{pmatrix}\\
 
-\bar\xi_{k,p,r} = \mathrm i^{-g} \cdot \sqrt{\frac{(g+1)!}{(g-2k)! (g-2p)! (g-2r)!}}
-\cdot \frac{(g-2k)!! (g-2p)!! (g-2r)!!}{g!!} \quad\text{with}\quad g=k+p+r\\
+\bar n_{k,p,r}^{-1} = \mathrm i^{-g} \cdot \sqrt{\frac{(g+1)!}{(g-2k)! (g-2p)! (g-2r)!}}
+\cdot \frac{(g-2k)!! (g-2p)!! (g-2r)!!}{g!!} \quad\text{with}\quad g=k+p+r }
+```
 
-w^{(\nu)}_{i,t,k,p,r} = \sum_{x=-k\ldots k, \\ y=-p\ldots p} \xi_{k,p,r,x,y,t}
-\sum_{s=-\sigma\ldots\sigma, \\ s'=-\sigma\ldots\sigma} \chi_{p,y,s,s'}
-\sum_{m=-l\ldots l, \\ m'=-l\ldots l} \omega_{k,x,m,m'} \rho^{(\nu)}_{i,m',m,s',s}}
+Putting everything together to get the multipole:
+```math
+w^{(\nu)}_{i,t,k,p,r} = \sum_{x=-k\ldots k, \\ y=-p\ldots p} \xi^{k,p,r}_{x,y,t}
+\sum_{s=-\sigma\ldots\sigma, \\ s'=-\sigma\ldots\sigma} \langle s | t^p_y | s' \rangle
+\sum_{m=-l\ldots l, \\ m'=-l\ldots l} \langle m | v^k_x | m' \rangle \rho^{(\nu)}_{i,m',m,s',s}
 ```
 
 # Copyright and license
